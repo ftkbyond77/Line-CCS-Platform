@@ -3,23 +3,23 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.database import engine, Base
 from app.routers import webhook, tickets
 
-# สร้างตารางฐานข้อมูลอัตโนมัติสำหรับเวอร์ชัน PoC
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Line-CCS Platform Backend (Phase 1 PoC)")
+app = FastAPI(title="Line-CCS Platform Backend", version="2.0")
 
-# อนุญาตให้ Next.js ฝั่ง Frontend ยิงมาหาได้สะดวก ไม่ติดปัญหา CORS
+# ─── บล็อกสำคัญ: เปิดประตูให้ Next.js พอร์ต 3000 ยิงเข้ามาขอข้อมูลได้ ───
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ใน Production ค่อยปรับให้ปลอดภัยขึ้นครับ
+    allow_origins=["http://localhost:3000"], # ยอมรับหน้าเว็บพอร์ต 3000
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["*"], # ยอมรับทุก HTTP Method (GET, POST, PUT)
     allow_headers=["*"],
 )
 
+# ลงทะเบียนท่อรับสัญญาณ
 app.include_router(webhook.router)
 app.include_router(tickets.router)
 
 @app.get("/")
 def root():
-    return {"message": "Line-CCS API is running smoothly."}
+    return {"status": "Backend Server is running perfectly in Phase 2"}

@@ -14,6 +14,9 @@ export default function TicketsDashboard() {
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [chatInput, setChatInput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
+  
+  // เพิ่ม Filter สําหรับแยกกระจายงานสไตล์ Jira 
+  const [agentFilter, setAgentFilter] = useState<string>('ALL');
 
   const loadData = async () => {
     try {
@@ -53,7 +56,7 @@ export default function TicketsDashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center bg-slate-50 h-screen w-screen">
-        <p className="text-sm font-medium text-slate-500 animate-pulse-slow">กำลังเปิดประตูเชื่อมต่อข้อมูลระบบ...</p>
+        <p className="text-sm font-medium text-slate-500 animate-pulse-slow">กำลังเข้าสู่ระบบจัดการ Account แชทกลุ่ม...</p>
       </div>
     );
   }
@@ -67,6 +70,8 @@ export default function TicketsDashboard() {
           tickets={tickets} 
           selectedId={selectedTicketId} 
           onSelect={(id) => setSelectedTicketId(id)} 
+          currentAgentFilter={agentFilter}
+          setCurrentAgentFilter={setAgentFilter}
         />
 
         {activeTicket ? (
@@ -85,7 +90,7 @@ export default function TicketsDashboard() {
           </>
         ) : (
           <div className="flex-1 flex items-center justify-center bg-slate-50/50 text-slate-400 text-sm italic">
-            ← โปรดเลือกแชทหรือตั๋วงานจากรายการฝั่งซ้าย เพื่อเริ่มต้นสวมบทบาทพนักงานควบคุม
+            ← โปรดเลือกบริษัทลูกค้าจากแถบฝั่งซ้าย เพื่อตรวจสอบไฟแจ้งเตือนสถานะแชทจมและบันทึกกำหนดนัดส่งของ
           </div>
         )}
       </div>
