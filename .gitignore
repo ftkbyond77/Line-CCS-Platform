@@ -216,3 +216,9 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+
+LCCS-P/frontend/node_modules/
+LCCS-P/frontend/.next/
+LCCS-P/backend/.env
+LCCS-P/backend/line_ccs.db
