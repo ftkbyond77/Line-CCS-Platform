@@ -2,28 +2,26 @@
 
 import './globals.css'; 
 import { useEffect, useState } from 'react';
-import { fetchTickets, updateTicketStatus, sendReplyToLine } from '../lib/api';
+import { fetchTickets, updateTicketWorkflow, sendReplyToLine } from '../lib/api';
 import { Ticket } from '../types';
 import KPICards from '../components/kpi-cards';
 import TicketList from '../components/ticket-list';
 import ChatPanel from '../components/chat-panel';
 import TicketDetail from '../components/ticket-detail';
 
-export default function TicketsDashboard() {
+export default function WorkspacePage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [selectedTicketId, setSelectedTicketId] = useState<number | null>(null);
   const [chatInput, setChatInput] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
-  
-  // เพิ่ม Filter สําหรับแยกกระจายงานสไตล์ Jira 
   const [agentFilter, setAgentFilter] = useState<string>('ALL');
 
   const loadData = async () => {
     try {
       const data = await fetchTickets();
-      setTickets(data);
+      setTickets(data || []);
     } catch (err) {
-      console.error("Error connecting to backend API:", err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -37,39 +35,41 @@ export default function TicketsDashboard() {
 
   const activeTicket = tickets.find(t => t.id === selectedTicketId) || null;
 
-  const handleStatusChange = async (newStatus: string) => {
+  // ฟังก์ชันสลับ Stage คิวงาน (รับ order, เช็ค stocking ฯลฯ)
+  const handleStageChange = async (newStage: string) => {
     if (!selectedTicketId) return;
-    await updateTicketStatus(selectedTicketId, newStatus);
+    await updateTicketWorkflow(selectedTicketId, { stage: newStage });
     await loadData();
   };
+
+  // ฟังก์ชันเปลี่ยนผู้รับผิดชอบ
+  const handleAgentChange = async (newAgent: string) => {
+    if (!selectedTicketId) return;
+    await updateTicketWorkflow(selectedTicketId, { agent_id: newAgent });
+    await loadData();
+  };
+
 
   const handleSendReply = async (text: string) => {
     if (!selectedTicketId) return;
     await sendReplyToLine(selectedTicketId, text);
+    setChatInput(''); // เคลียร์ช่องแชทหลังส่งเสร็จ
     await loadData();
   };
 
-  const handleInjectAISuggestion = (aiText: string) => {
-    setChatInput(aiText);
-  };
-
   if (loading) {
-    return (
-      <div className="flex items-center justify-center bg-slate-50 h-screen w-screen">
-        <p className="text-sm font-medium text-slate-500 animate-pulse-slow">กำลังเข้าสู่ระบบจัดการ Account แชทกลุ่ม...</p>
-      </div>
-    );
+    return <div className="flex items-center justify-center h-screen text-slate-500 text-sm">กำลังโหลดระบบ Workspace...</div>;
   }
 
   return (
-    <div className="w-screen h-screen flex flex-col p-4 bg-slate-50 overflow-hidden">
+    <div className="w-full h-full flex flex-col p-4 bg-slate-50 overflow-hidden font-sans">
       <KPICards tickets={tickets} />
 
       <div className="flex-1 flex bg-white border border-slate-200 rounded-xl shadow-sm overflow-hidden h-[calc(100vh-160px)]">
         <TicketList 
           tickets={tickets} 
           selectedId={selectedTicketId} 
-          onSelect={(id) => setSelectedTicketId(id)} 
+          onSelect={setSelectedTicketId} 
           currentAgentFilter={agentFilter}
           setCurrentAgentFilter={setAgentFilter}
         />
@@ -82,15 +82,16 @@ export default function TicketsDashboard() {
               inputFieldValue={chatInput}
               setInputFieldValue={setChatInput}
             />
+            {/* ส่ง Props แบบ Manual ล้วนเข้า TicketDetail */}
             <TicketDetail 
               ticket={activeTicket} 
-              onStatusChange={handleStatusChange}
-              onUseAISuggestion={handleInjectAISuggestion}
+              onStageChange={handleStageChange}
+              onAgentChange={handleAgentChange}
             />
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center bg-slate-50/50 text-slate-400 text-sm italic">
-            ← โปรดเลือกบริษัทลูกค้าจากแถบฝั่งซ้าย เพื่อตรวจสอบไฟแจ้งเตือนสถานะแชทจมและบันทึกกำหนดนัดส่งของ
+          <div className="flex-1 flex items-center justify-center text-slate-400 text-sm italic bg-slate-50/50">
+            ← โปรดเลือกห้องแชทบริษัทจากฝั่งซ้าย เพื่อเริ่มตอบและจัดการคิวงาน
           </div>
         )}
       </div>

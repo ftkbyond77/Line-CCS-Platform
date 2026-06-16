@@ -3,88 +3,48 @@ import { Ticket } from '@/types';
 
 interface TicketDetailProps {
   ticket: Ticket;
-  onStatusChange: (status: string) => Promise<void>;
-  onUseAISuggestion: (text: string) => void;
+  onStageChange: (stage: string) => Promise<void>;
+  onAgentChange: (agent: string) => Promise<void>;
 }
 
-export default function TicketDetail({ ticket, onStatusChange, onUseAISuggestion }: TicketDetailProps) {
+export default function TicketDetail({ ticket, onStageChange, onAgentChange }: TicketDetailProps) {
   return (
-    <div className="w-80 border-l border-slate-200 bg-white p-4 flex flex-col gap-4 h-full overflow-y-auto">
-      {/* ส่วนควบคุมสถานะและการมอบหมายสไตล์ Jira  */}
+    <div className="w-80 border-l border-slate-200 bg-white p-4 flex flex-col gap-5 h-full overflow-y-auto">
+      
       <div>
         <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Workflow Management</h4>
-        <div className="flex flex-col gap-2 bg-slate-50 p-2.5 rounded-xl border border-slate-100">
+        <div className="flex flex-col gap-3 bg-slate-50 p-3 rounded-xl border border-slate-100">
           <div>
-            <label className="text-[11px] text-slate-500 font-medium">สถานะตั๋ว:</label>
+            <label className="text-[11px] text-slate-500 font-medium">ขั้นตอนคิวงาน (Stage):</label>
             <select
-              value={ticket.status}
-              onChange={(e) => onStatusChange(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg p-1.5 text-xs bg-white text-slate-700 font-medium mt-0.5"
+              value={ticket.stage || 'รับ order'}
+              onChange={(e) => onStageChange(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg p-1.5 text-xs bg-white text-slate-700 font-bold mt-1 outline-none focus:border-blue-500"
             >
-              <option value="Open">Open (เปิดเคสค้าง)</option>
-              <option value="In Progress">In Progress (กำลังตามเรื่อง)</option>
-              <option value="Resolved">Resolved (ปิดงานเสร็จสิ้น)</option>
+              <option value="รับ order">รับ order</option>
+              <option value="เช็ค stocking">เช็ค stocking</option>
+              <option value="รอของ">รอของ</option>
+              <option value="delivery">delivery</option>
+              <option value="feedback">feedback</option>
+              <option value="ปิดงาน">ปิดงาน (Resolved)</option>
             </select>
           </div>
-          <div className="mt-1">
-            <span className="text-[11px] text-slate-500 block">ผู้รับผิดชอบกลุ่มนี้:</span>
-            <span className="text-xs font-bold text-slate-700 font-mono">👤 {ticket.account?.owner_agent_id || 'ไม่มี'}</span>
-          </div>
-        </div>
-      </div>
-
-      <hr className="border-slate-100" />
-
-      {/* บันทึกช่วยจำนัดหมายส่งมอบสินค้าที่ AI สกัดออกมาจากประโยคแชท 🗓️  */}
-      <div>
-        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">🗓️ บันทึกตารางนัดหมายส่งของ</h4>
-        {ticket.schedules && ticket.schedules.length > 0 ? (
-          <div className="flex flex-col gap-2">
-            {ticket.schedules.map((sched) => (
-              <div key={sched.id} className="bg-amber-50/70 border border-amber-200 rounded-xl p-2.5 text-xs shadow-sm">
-                <div className="font-bold text-amber-800 flex items-center justify-between">
-                  <span>📌 {sched.title}</span>
-                </div>
-                <p className="text-[11px] text-amber-700/90 mt-1 font-medium bg-amber-100/50 p-1 rounded">
-                  🗓️ กำหนด: {sched.target_date || "ไม่ได้ระบุวันชัดเจน"}
-                </p>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[11px] text-slate-400 italic text-center p-3 border border-dashed border-slate-100 rounded-xl">
-            ยังไม่มีบันทึกข้อตกลงนัดส่งของในห้องแชทนี้
-          </p>
-        )}
-      </div>
-
-      <hr className="border-slate-100" />
-
-      {/* AI Suggestion Box */}
-      <div className="flex-1 flex flex-col">
-        <div className="flex items-center gap-1.5 mb-2">
-          <div className="h-2 w-2 rounded-full bg-purple-500 animate-pulse"></div>
-          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">AI Suggested Reply</h4>
-        </div>
-
-        {ticket.ai_suggestion ? (
-          <div className="bg-purple-50/60 border border-purple-100 rounded-xl p-3 flex flex-col justify-between gap-2">
-            <p className="text-xs text-slate-700 leading-relaxed italic">
-              "{ticket.ai_suggestion}"
-            </p>
-            <button
-              onClick={() => onUseAISuggestion(ticket.ai_suggestion || '')}
-              className="w-full bg-purple-600 text-white rounded-lg py-1.5 text-xs font-medium hover:bg-purple-700 transition-colors shadow-sm"
+          <div>
+            <label className="text-[11px] text-slate-500 font-medium">มอบหมายให้ (Owner):</label>
+            <select
+              value={ticket.account?.owner_agent_id || 'Unassigned'}
+              onChange={(e) => onAgentChange(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg p-1.5 text-xs bg-white text-slate-700 font-medium mt-1 outline-none focus:border-blue-500"
             >
-              ดึงข้อความนี้ไปแก้ไขและส่งออก
-            </button>
+              <option value="Unassigned">ยังไม่มีผู้รับผิดชอบ</option>
+              <option value="Agent_Boy">น้องบอย (Sales)</option>
+              <option value="Agent_Ploy">พี่พลอย (CS)</option>
+            </select>
           </div>
-        ) : (
-          <div className="text-xs text-slate-400 italic p-4 text-center border border-dashed border-slate-200 rounded-xl">
-            กำลังรอข้อความถัดไปจากลูกค้า...
-          </div>
-        )}
+        </div>
       </div>
+      
+
     </div>
   );
 }

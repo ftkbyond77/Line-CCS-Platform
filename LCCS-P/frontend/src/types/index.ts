@@ -2,7 +2,7 @@ export interface Message {
   id: number;
   ticket_id: number;
   sender_id: string;
-  sender_name: string | null;
+  sender_name?: string;
   message_text: string;
   timestamp: string;
 }
@@ -11,26 +11,27 @@ export interface Schedule {
   id: number;
   ticket_id: number;
   title: string;
-  note: string | null;
-  target_date: string | null;
+  note?: string;
+  target_date?: string;
+  created_at: string;
 }
 
 export interface Account {
   id: number;
-  line_group_id: string | null;
+  line_group_id?: string;
   company_name: string;
-  owner_agent_id: string; 
+  owner_agent_id: string;
 }
 
 export interface Ticket {
   id: number;
-  account_id: number | null;
-  status: 'Open' | 'In Progress' | 'Resolved';
-  category: string;
-  is_replied: boolean; // ดักแชทค้าง [cite: 206]
-  ai_suggestion: string | null;
+  account_id?: number;
+  status: string;           // 'Open' | 'In Progress' | 'Resolved'
+  stage: string;            
+  is_replied: boolean;     
   created_at: string;
-  account: Account | null;
+  updated_at: string;
+  account?: Account;
   messages: Message[];
-  schedules: Schedule[]; 
+  schedules: Schedule[];
 }
